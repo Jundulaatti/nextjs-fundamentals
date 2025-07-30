@@ -5,7 +5,6 @@ import { issues } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/dal'
 import { z } from 'zod'
-import { mockDelay } from '@/lib/utils'
 import { revalidateTag } from 'next/cache'
 // Define Zod schema for issue validation
 const IssueSchema = z.object({
@@ -38,7 +37,6 @@ export type ActionResponse = {
 export async function createIssue(data: IssueData): Promise<ActionResponse> {
   try {
     // Security check - ensure user is authenticated
-    await mockDelay(700)
     const user = await getCurrentUser()
     if (!user) {
       return {
@@ -83,11 +81,10 @@ export async function createIssue(data: IssueData): Promise<ActionResponse> {
 
 export async function updateIssue(
   id: number,
-  data: Partial<IssueData>
+  data: IssueData
 ): Promise<ActionResponse> {
   try {
     // Security check - ensure user is authenticated
-    await mockDelay(700)
     const user = await getCurrentUser()
     if (!user) {
       return {
@@ -97,10 +94,8 @@ export async function updateIssue(
       }
     }
 
-    // Allow partial validation for updates
-    const UpdateIssueSchema = IssueSchema.partial()
-    const validationResult = UpdateIssueSchema.safeParse(data)
-
+    // Validate with Zod
+    const validationResult = IssueSchema.safeParse(data)
     if (!validationResult.success) {
       return {
         success: false,
@@ -109,21 +104,17 @@ export async function updateIssue(
       }
     }
 
-    // Type safe update object with validated data
+    // Update issue with validated data
     const validatedData = validationResult.data
-    const updateData: Record<string, unknown> = {}
-
-    if (validatedData.title !== undefined)
-      updateData.title = validatedData.title
-    if (validatedData.description !== undefined)
-      updateData.description = validatedData.description
-    if (validatedData.status !== undefined)
-      updateData.status = validatedData.status
-    if (validatedData.priority !== undefined)
-      updateData.priority = validatedData.priority
-
-    // Update issue
-    await db.update(issues).set(updateData).where(eq(issues.id, id))
+    await db
+      .update(issues)
+      .set({
+        title: validatedData.title,
+        description: validatedData.description || null,
+        status: validatedData.status,
+        priority: validatedData.priority,
+      })
+      .where(eq(issues.id, id))
 
     return { success: true, message: 'Issue updated successfully' }
   } catch (error) {
@@ -132,29 +123,6 @@ export async function updateIssue(
       success: false,
       message: 'An error occurred while updating the issue',
       error: 'Failed to update issue',
-    }
-  }
-}
-
-export async function deleteIssue(id: number) {
-  try {
-    // Security check - ensure user is authenticated
-    await mockDelay(700)
-    const user = await getCurrentUser()
-    if (!user) {
-      throw new Error('Unauthorized')
-    }
-
-    // Delete issue
-    await db.delete(issues).where(eq(issues.id, id))
-
-    return { success: true, message: 'Issue deleted successfully' }
-  } catch (error) {
-    console.error('Error deleting issue:', error)
-    return {
-      success: false,
-      message: 'An error occurred while deleting the issue',
-      error: 'Failed to delete issue',
     }
   }
 }
