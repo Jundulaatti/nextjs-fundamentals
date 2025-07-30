@@ -27,7 +27,7 @@ export default async function LandingPage() {
         </div>
       </main>
 
-      <footer className="border-t border-gray-200 dark:border-gray-600">
+      <footer className="border-t border-gray-200 dark:border-dark-border-subtle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <div className="text-center text-sm text-gray-500 dark:text-gray-400">
             <p>

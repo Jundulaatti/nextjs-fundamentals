@@ -9,7 +9,7 @@ export default async function MarketingLayout({
 }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-[#121212]">
+      <header className="border-b border-gray-200 dark:border-dark-border-subtle bg-white dark:bg-dark-base">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-8">
             <Link href="/" className="text-xl font-bold">
@@ -51,7 +51,7 @@ export default async function MarketingLayout({
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-[#121212]">
+      <footer className="border-t border-gray-200 dark:border-dark-border-subtle bg-white dark:bg-dark-base">
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div>
