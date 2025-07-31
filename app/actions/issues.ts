@@ -79,13 +79,13 @@ export async function createIssue(data: IssueData): Promise<ActionResponse> {
   }
 }
 
-export async function updateIssue(
+export const updateIssue = async (
   id: number,
-  data: IssueData
-): Promise<ActionResponse> {
+  data: Partial<IssueData>
+): Promise<ActionResponse> => {
   try {
-    // Security check - ensure user is authenticated
     const user = await getCurrentUser()
+
     if (!user) {
       return {
         success: false,
@@ -94,8 +94,9 @@ export async function updateIssue(
       }
     }
 
-    // Validate with Zod
-    const validationResult = IssueSchema.safeParse(data)
+    const UpdateSchema = IssueSchema.partial()
+    const validationResult = UpdateSchema.safeParse(data)
+
     if (!validationResult.success) {
       return {
         success: false,
@@ -104,17 +105,23 @@ export async function updateIssue(
       }
     }
 
-    // Update issue with validated data
+    // Type safe update object with validated data
     const validatedData = validationResult.data
-    await db
-      .update(issues)
-      .set({
-        title: validatedData.title,
-        description: validatedData.description || null,
-        status: validatedData.status,
-        priority: validatedData.priority,
-      })
-      .where(eq(issues.id, id))
+    const updateData: Record<string, unknown> = {}
+
+    if (validatedData.title !== undefined)
+      updateData.title = validatedData.title
+    if (validatedData.description !== undefined)
+      updateData.description = validatedData.description
+    if (validatedData.status !== undefined)
+      updateData.status = validatedData.status
+    if (validatedData.priority !== undefined)
+      updateData.priority = validatedData.priority
+
+    // Update issue
+    await db.update(issues).set(updateData).where(eq(issues.id, id))
+
+    revalidateTag('issues')
 
     return { success: true, message: 'Issue updated successfully' }
   } catch (error) {

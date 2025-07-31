@@ -51,3 +51,20 @@ export async function getIssues() {
     throw new Error('Failed to fetch issues')
   }
 }
+
+export async function getIssue(id: number) {
+  'use cache'
+  cacheTag('issues')
+  try {
+    const result = await db.query.issues.findFirst({
+      where: eq(issues.id, id),
+      with: {
+        user: true,
+      },
+    })
+    return result
+  } catch (error) {
+    console.error('Error fetching issue:', error)
+    throw new Error('Failed to fetch issue')
+  }
+}
