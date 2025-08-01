@@ -133,3 +133,31 @@ export const updateIssue = async (
     }
   }
 }
+
+export const deleteIssue = async (id: number): Promise<ActionResponse> => {
+  try {
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Unauthorized access',
+        error: 'Unauthorized',
+      }
+    }
+
+    // Delete issue
+    await db.delete(issues).where(eq(issues.id, id))
+
+    revalidateTag('issues')
+
+    return { success: true, message: 'Issue deleted successfully' }
+  } catch (error) {
+    console.error('Error deleting issue:', error)
+    return {
+      success: false,
+      message: 'An error occurred while deleting the issue',
+      error: 'Failed to delete issue',
+    }
+  }
+}

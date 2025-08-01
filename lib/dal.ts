@@ -56,6 +56,7 @@ export async function getIssue(id: number) {
   'use cache'
   cacheTag('issues')
   try {
+    await mockDelay(1000)
     const result = await db.query.issues.findFirst({
       where: eq(issues.id, id),
       with: {
