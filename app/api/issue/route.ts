@@ -1,53 +1,28 @@
-import { NextResponse } from 'next/server'
 import { db } from '@/db'
+import { NextRequest, NextResponse } from 'next/server'
 import { issues } from '@/db/schema'
+import { getCurrentUser } from '@/lib/dal'
 
-export async function GET() {
+export const GET = async (req: NextRequest) => {
   try {
-    const allIssues = await db.query.issues.findMany()
-    return NextResponse.json(allIssues)
+    const issues = await db.query.issues.findMany()
+    return NextResponse.json({ data: { issues } })
   } catch (error) {
-    console.error('Error fetching issues:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch issues' },
-      { status: 500 }
-    )
+    console.log(error)
+    return NextResponse.json({ error: 'Nah' }, { status: 500 })
   }
 }
 
-export async function POST(request: Request) {
+export const POST = async (req: NextResponse) => {
   try {
-    const data = await request.json()
-
-    // Validate required fields
-    if (!data.title || !data.userId) {
-      return NextResponse.json(
-        { error: 'Title and userId are required' },
-        { status: 400 }
-      )
-    }
-
-    // Create the issue
-    const newIssue = await db
+    const [newIssue] = await db
       .insert(issues)
-      .values({
-        title: data.title,
-        description: data.description || null,
-        status: data.status || 'backlog',
-        priority: data.priority || 'medium',
-        userId: data.userId,
-      })
+      .values(await req.json())
       .returning()
 
-    return NextResponse.json(
-      { message: 'Issue created successfully', issue: newIssue[0] },
-      { status: 201 }
-    )
+    return NextResponse.json({ data: { newIssue } })
   } catch (error) {
-    console.error('Error creating issue:', error)
-    return NextResponse.json(
-      { error: 'Failed to create issue' },
-      { status: 500 }
-    )
+    console.log(error)
+    return NextResponse.json({ error: 'Nah' }, { status: 500 })
   }
 }
